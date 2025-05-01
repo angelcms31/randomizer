@@ -8,15 +8,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Define the color palette using CSS variables (from slot machine) */
         :root {
-            --jagged-ice: #BCE3E3; /* Light blue-green (Body BG) */
-            --neptune: #6CB4BC; /* Teal (Borders, Buttons, Grid BG) */
-            --sinbad: #94CDD0; /* Light teal (Buttons) */
-            --jungle-mist: #A4CCCE; /* Greyish blue-green (Card BG) */
-            --outer-space: #2C3737; /* Dark text */
-            --gray-700: #374151; /* H1 color */
-            --gray-400: #9ca3af; /* Scratch overlay color */
+            --jagged-ice: #BCE3E3; 
+            --neptune: #6CB4BC; 
+            --sinbad: #94CDD0; 
+            --jungle-mist: #A4CCCE; 
+            --outer-space: #2C3737; 
+            --gray-700: #374151; 
+            --gray-400: #9ca3af; 
             --white: #ffffff;
         }
 
@@ -48,7 +47,6 @@
             margin-bottom: 1rem;
         }
 
-        /* Back button style from slot machine */
         .back-button {
             position: absolute;
             left: 0;
@@ -57,7 +55,7 @@
             background: none;
             border: none;
             font-size: 1.5rem;
-            color: var(--sinbad);
+            color: var(--white);
             cursor: pointer;
             padding: 0.5rem;
             transition: color 0.2s ease-in-out;
@@ -137,7 +135,6 @@
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
-            /* UNDO: Removed initial white color for symbol */
              color: var(--outer-space); /* Make symbols dark again */
         }
 
@@ -147,7 +144,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: var(--gray-400); /* Gray overlay */
+            background-color: var(--jungle-mist); /* Gray overlay */
             border-radius: 6px;
             transition: opacity 0.3s ease-out;
             display: flex;

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hospital Hope Slot Machine</title>
+    <title>Hospital Slot Machine</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -23,6 +23,10 @@
 
         body {
             font-family: 'Inter', sans-serif;
+            background-image: url('bg.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat; 
             background-color: var(--jagged-ice);
             display: flex;
             flex-direction: column;
@@ -51,7 +55,7 @@
             background: none;
             border: none;
             font-size: 1.5rem;
-            color: var(--sinbad);
+            color: var(--white);
             cursor: pointer;
             padding: 0.5rem;
             transition: color 0.2s ease-in-out;
@@ -273,11 +277,11 @@
                  font-size: 0.9rem;
              }
              .modal-buttons-container {
-                 flex-direction: column; /* Stack buttons vertically */
+                 flex-direction: column;
                  align-items: center;
              }
              .modal-button {
-                 width: 80%; /* Make buttons take more width */
+                 width: 80%; 
              }
          }
 
@@ -288,7 +292,7 @@
         <button id="backButton" class="back-button" title="Back to Home" aria-label="Back to Home">
             <i class="fas fa-arrow-left"></i>
         </button>
-        <h1>Hospital Hope!</h1>
+        <h1>Baby Slot Machine</h1>
     </div>
 
     <div class="game-card">
