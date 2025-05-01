@@ -14,31 +14,81 @@
 
         body {
             font-family: sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            overflow: hidden; /* Hide scrollbars during preloader */
+        }
+
+        /* Preloader styles */
+        #preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: url('bg.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-color: var(--jagged-ice); /* Fallback color */
+            z-index: 9999;
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 5s ease-out, visibility 1s ease-out;
+        }
+
+        #preloader .logo {
+            max-width: 150px;
+            height: auto;
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+
+        /* Main content area - initially hidden */
+        .main-content {
+            background-image: url('bg.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            margin: 0;
-            padding: 20px; 
-            box-sizing: border-box; 
-            background-color: var(--jagged-ice);
+            padding: 20px;
+            box-sizing: border-box;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease-in, visibility 0.5s ease-in; 
+            transition-delay: 1s; 
+            width: 100%;
         }
 
         .container {
-            background-color: #fff; 
+            background-color: rgba(255, 255, 255, 0.85);
             padding: 30px;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
             text-align: center;
-            width: 100%; 
-            max-width: 400px; 
-            background-color: rgba(255, 255, 255, 0.8); 
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .container .logo {
+            max-width: 200px;
+            height: auto;
+            margin-bottom: 20px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         h1 {
             color: var(--neptune);
             margin-bottom: 20px;
-            font-size: 24px; 
+            font-size: 24px;
         }
 
         .button-container {
@@ -48,7 +98,7 @@
         }
 
         .game-button {
-            background-color: var(--sinbad); 
+            background-color: var(--sinbad);
             color: white;
             border: none;
             padding: 12px 24px;
@@ -57,45 +107,90 @@
             font-size: 18px;
             text-decoration: none;
             transition: background-color 0.3s ease;
-            display: block; 
-            width: 100%; 
-            box-sizing: border-box; 
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .game-button:hover {
-            background-color: var(--jungle-mist); 
+            background-color: var(--jungle-mist);
         }
+
+        /* Styles applied when loading is complete */
+        body.loaded #preloader {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        body.loaded .main-content {
+            opacity: 1;
+            visibility: visible;
+        }
+        body.loaded {
+            overflow: auto; /* Restore scrollbars */
+        }
+
+
+        /* Pulse animation for preloader logo */
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
 
         @media (max-width: 480px) {
+            #preloader .logo {
+                 max-width: 120px;
+            }
             .container {
-                padding: 20px; 
+                padding: 20px;
             }
-
+            .container .logo {
+                max-width: 80px;
+                margin-bottom: 15px;
+            }
             h1 {
-                font-size: 20px; 
+                font-size: 20px;
             }
-
             .game-button {
-                padding: 10px 20px; 
-                font-size: 16px; 
+                padding: 10px 20px;
+                font-size: 16px;
             }
         }
 
-        @media screen and (orientation: portrait) {
-            body {
-                background-size: cover; 
-            }
-        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Select a Game to Win!</h1>
-        <div class="button-container">
-            <a href="Scratch_card.html" class="game-button">Scratch Card</a>
-            <a href="slot_machine.html" class="game-button">Slot Machine</a>
-            <a href="Spin_the_wheel.html" class="game-button">Spin the Wheel</a>
+
+    <div id="preloader">
+        <img src="logo.png" alt="Loading Logo" class="logo" onerror="this.style.display='none'; console.error('Preloader logo image failed to load.')">
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <img src="logo.png" alt="Game Logo" class="logo" onerror="this.style.display='none'; console.error('Container logo image failed to load.')">
+            <h1>Select a Game to Win!</h1>
+            <div class="button-container">
+                <a href="Scratch_card.html" class="game-button">Scratch Card</a>
+                <a href="slot_machine.html" class="game-button">Slot Machine</a>
+                <a href="Spin_the_wheel.html" class="game-button">Spin the Wheel</a>
+            </div>
         </div>
     </div>
+
+    <script>
+        window.onload = function() {
+            document.body.classList.add('loaded');
+        };
+    </script>
+
 </body>
 </html>
+
+
+
+
