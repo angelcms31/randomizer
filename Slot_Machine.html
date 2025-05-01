@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baby Hospital Slot Machine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f9ff; 
+        }
+        .reel {
+            border: 4px solid #60a5fa;
+            background-color: white;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 0.5rem;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .reel-symbols {
+             text-align: center;
+        }
+        .spin-button {
+            background: linear-gradient(145deg, #60a5fa, #3b82f6);
+            color: white;
+            font-weight: bold;
+            padding: 1rem 2rem;
+            border-radius: 0.75rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .spin-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+        .spin-button:active:not(:disabled) {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .spin-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: #9ca3af;
+        }
+        .message-box {
+            min-height: 50px;
+            background-color: #ecfccb;
+            color: #4d7c0f;
+            border: 2px dashed #a3e635;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .spin-counter {
+            background-color: #bfdbfe; 
+            color: #1e3a8a;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-weight: 600;
+        }
+        .win-message {
+            background-color: #dbeafe !important; 
+            color: #1e40af !important; 
+            border: 2px solid #93c5fd !important; 
+        }
+
+        .lose-message {
+            background-color: #fee2e2 !important; 
+            color: #991b1b !important; 
+            border: 2px dashed #fca5a5 !important; 
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div class="bg-white p-6 md:p-10 rounded-xl shadow-xl max-w-md w-full text-center border-t-8 border-blue-400">
+
+        <h1 class="text-3xl md:text-4xl font-bold text-blue-600 mb-2">Baby Blessings!</h1>
+        <p class="text-gray-500 mb-6">Match 3 to Win!</p>
+
+        <div class="mb-6">
+            <span id="spin-count" class="spin-counter">Spins Left: 10</span>
+        </div>
+
+        <div class="flex justify-center space-x-2 sm:space-x-4 mb-8">
+            <div id="reel1" class="reel w-16 h-20 text-4xl sm:w-20 sm:h-24 sm:text-5xl">
+                <div class="reel-symbols">?</div>
+            </div>
+            <div id="reel2" class="reel w-16 h-20 text-4xl sm:w-20 sm:h-24 sm:text-5xl">
+                <div class="reel-symbols">?</div>
+            </div>
+            <div id="reel3" class="reel w-16 h-20 text-4xl sm:w-20 sm:h-24 sm:text-5xl">
+                <div class="reel-symbols">?</div>
+            </div>
+        </div>
+
+        <button id="spin-button" class="spin-button w-full md:w-auto">Spin!</button>
+
+        <div id="message-area" class="message-box mt-8">
+            Welcome! Press Spin to start.
+        </div>
+
+    </div>
+
+    <script>
+        const symbols = ['🍭', '🍼', '🎉'];
+        const prizes = [
+            { symbol: '🍭', name: 'Lollipop 🍭', message: "Sweet! Three Lollipops! You won! 🍭", freeSpins: 0 },
+            { symbol: '🍼', name: 'Medical Supply 🍼', message: "Essential! Three Bottles! You won! 🍼", freeSpins: 0 },
+            { symbol: '🎉', name: 'Free 2 Spins 🎉', message: "Woohoo! Three Party Poppers! You won 2 Free Spins! 🎉", freeSpins: 2 }
+        ];
+        const initialSpins = 10;
+        const spinDurationBase = 300;
+        const spinDurationVariance = 200;
+        const reelStopDelay = 150; 
+
+        const reel1Element = document.getElementById('reel1').querySelector('.reel-symbols');
+        const reel2Element = document.getElementById('reel2').querySelector('.reel-symbols');
+        const reel3Element = document.getElementById('reel3').querySelector('.reel-symbols');
+        const reels = [reel1Element, reel2Element, reel3Element];
+        const spinButton = document.getElementById('spin-button');
+        const messageArea = document.getElementById('message-area');
+        const spinCountDisplay = document.getElementById('spin-count');
+
+        let currentSpins = initialSpins;
+        let isSpinning = false;
+
+        function updateSpinDisplay() {
+            spinCountDisplay.textContent = `Spins Left: ${currentSpins}`;
+        }
+
+        function showMessage(text, type = 'info') {
+            messageArea.textContent = text;
+            messageArea.classList.remove('win-message', 'lose-message', 'bg-ecfccb', 'text-4d7c0f', 'border-a3e635', 'bg-blue-100', 'text-blue-800', 'border-blue-300');
+
+            messageArea.classList.add('message-box');
+
+            if (type === 'win') {
+                messageArea.classList.remove('bg-ecfccb', 'text-4d7c0f', 'border-a3e635', 'lose-message');
+                messageArea.classList.add('win-message');
+            } else if (type === 'lose') {
+                 messageArea.classList.remove('bg-ecfccb', 'text-4d7c0f', 'border-a3e635', 'win-message'); 
+                messageArea.classList.add('lose-message');
+            } else {
+                 messageArea.classList.remove('win-message', 'lose-message');
+                 messageArea.classList.add('bg-ecfccb', 'text-4d7c0f', 'border-a3e635');
+            }
+        }
+
+        function animateReel(reelElement, duration) {
+            return new Promise(resolve => {
+                const startTime = Date.now();
+                let finalSymbol = symbols[Math.floor(Math.random() * symbols.length)];
+
+                function spinStep() {
+                    const elapsedTime = Date.now() - startTime;
+
+                    if (elapsedTime < duration) {
+                        const randomIndex = Math.floor(Math.random() * symbols.length);
+                        reelElement.textContent = symbols[randomIndex];
+                        requestAnimationFrame(spinStep); 
+                    } else {
+                        reelElement.textContent = finalSymbol;
+                        resolve(finalSymbol); 
+                    }
+                }
+                requestAnimationFrame(spinStep);
+            });
+        }
+
+        async function spin() {
+            if (isSpinning || currentSpins <= 0) {
+                return; 
+            }
+
+            isSpinning = true;
+            spinButton.disabled = true;
+            currentSpins--;
+            updateSpinDisplay();
+            showMessage("Spinning...", 'info');
+
+            const spinPromises = reels.map((reel, index) => {
+                 const duration = spinDurationBase + Math.random() * spinDurationVariance + index * reelStopDelay;
+                 return animateReel(reel, duration);
+            });
+
+            const finalSymbols = await Promise.all(spinPromises);
+            const [symbol1, symbol2, symbol3] = finalSymbols;
+
+
+            if (symbol1 === symbol2 && symbol2 === symbol3) {
+                const winningPrize = prizes.find(p => p.symbol === symbol1);
+
+                if (winningPrize) {
+                    showMessage(winningPrize.message, 'win');
+                    currentSpins += winningPrize.freeSpins; 
+                } else {
+                    showMessage(`You matched three ${symbol1}! You win!`, 'win');
+                }
+            } else {
+                showMessage("No match this time. Spin again!", 'lose');
+            }
+
+            updateSpinDisplay();
+
+            if (currentSpins <= 0) {
+                showMessage("Oh no! Out of spins. Refresh to play again.", 'lose');
+                spinButton.disabled = true;
+            } else {
+                spinButton.disabled = false;
+            }
+            isSpinning = false;
+        }
+
+        spinButton.addEventListener('click', spin);
+
+        updateSpinDisplay();
+        reels.forEach(reel => reel.textContent = '?');
+        showMessage("Welcome! Press Spin to start.", 'info');
+    </script>
+
+</body>
+</html>

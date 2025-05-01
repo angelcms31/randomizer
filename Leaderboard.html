@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Leaderboard - Baby & Hospital Theme</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #e0f7fa 0%, #fce4ec 50%, #fff9c4 100%);
+            background-image: linear-gradient(135deg, #e0f7fa 0%, #fce4ec 50%, #fff9c4 100%),
+                              url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 10 10'%3E%3Cpath d='M4 0 V4 H0 V6 H4 V10 H6 V6 H10 V4 H6 V0 Z' fill='rgba(0,0,0,0.03)'/%3E%3C/svg%3E");
+            background-attachment: fixed;
+        }
+        th {
+            position: sticky;
+            top: 0;
+            background-color: #cbd5e1; /* bg-slate-300 */
+            color: #1f2937; /* text-gray-800 */
+            z-index: 10;
+            font-weight: 600;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+        .title-pulse {
+             animation: pulse 3s infinite ease-in-out;
+        }
+        tbody tr:nth-child(odd) {
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+        tbody tr:nth-child(even) {
+            background-color: rgba(249, 250, 251, 0.8);
+        }
+        /* Hover effect for rows - make cursor pointer */
+        tbody tr:hover {
+            background-color: rgba(229, 231, 235, 0.9);
+            cursor: pointer; /* Indicate rows are clickable */
+        }
+        /* Style for selected row */
+        .selected-row {
+            background-color: rgba(199, 210, 254, 0.9) !important; /* bg-indigo-200 with transparency */
+            outline: 2px solid #818cf8; /* indigo-400 outline */
+            outline-offset: -1px;
+        }
+
+        .action-button {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: background-color 0.2s ease, transform 0.1s ease, opacity 0.3s ease;
+            white-space: nowrap;
+            border: 1px solid rgba(0,0,0,0.1);
+            color: #1f2937;
+        }
+         .action-button:active {
+             transform: scale(0.98);
+         }
+         /* Disabled state for buttons */
+         .action-button:disabled {
+              opacity: 0.5;
+              cursor: not-allowed;
+              transform: none;
+         }
+
+        /* Button colors */
+        .submit-button { background-color: #6ee7b7; } /* emerald-300 */
+        .submit-button:hover:not(:disabled) { background-color: #34d399; } /* emerald-400 */
+        .update-button { background-color: #fcd34d; } /* amber-300 */
+        .update-button:hover:not(:disabled) { background-color: #fbbf24; } /* amber-400 */
+        .delete-button { background-color: #fca5a5; } /* red-300 */
+        .delete-button:hover:not(:disabled) { background-color: #f87171; } /* red-400 */
+        .cancel-button { background-color: #d1d5db; } /* gray-300 */
+        .cancel-button:hover:not(:disabled) { background-color: #9ca3af; } /* gray-400 */
+
+
+        #entry-form {
+            background-color: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        input[type="text"]:focus {
+            box-shadow: 0 0 0 2px rgba(139, 195, 243, 0.4);
+            border-color: #60a5fa;
+        }
+        .main-container {
+            background-color: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        /* Container for form buttons */
+        .form-actions {
+            display: flex;
+            flex-wrap: wrap; /* Allow buttons to wrap on small screens */
+            gap: 0.75rem; /* space-x-3 equivalent */
+            align-items: flex-end; /* Align buttons to bottom */
+        }
+        /* Make buttons take available space but not exceed content width */
+        .form-actions .action-button {
+             flex-grow: 1; /* Allow buttons to grow */
+             flex-basis: auto; /* Start with auto basis */
+        }
+         /* On larger screens, prevent excessive growth */
+         @media (min-width: 768px) {
+             .form-actions .action-button {
+                 flex-grow: 0;
+             }
+         }
+
+
+        /* Responsive table adjustments */
+        @media (max-width: 640px) {
+            thead { display: none; }
+            tbody, tr, td { display: block; width: 100%; }
+            tr {
+                margin-bottom: 1rem;
+                border: 1px solid #e5e7eb;
+                border-radius: 0.375rem;
+                background-color: rgba(255, 255, 255, 0.85);
+            }
+             tr:nth-child(odd), tr:nth-child(even) {
+                 background-color: rgba(255, 255, 255, 0.85);
+             }
+             /* Selected row on mobile */
+             .selected-row {
+                 outline: 2px solid #818cf8; /* indigo-400 */
+                 background-color: rgba(199, 210, 254, 0.9) !important; /* bg-indigo-200 */
+             }
+            td {
+                text-align: right;
+                padding-left: 50%;
+                position: relative;
+                border-bottom: 1px solid #e5e7eb;
+            }
+             td:last-child { border-bottom: none; }
+            td::before {
+                content: attr(data-label);
+                position: absolute;
+                left: 0.75rem;
+                width: 45%;
+                padding-right: 0.75rem;
+                font-weight: 600;
+                text-align: left;
+                white-space: nowrap;
+                color: #4b5563;
+            }
+            /* Adjust title size */
+            h1 { font-size: 1.5rem; }
+            h2 { font-size: 1.125rem; }
+
+            /* Stack form buttons vertically on small screens */
+            .form-actions {
+                flex-direction: column;
+                align-items: stretch; /* Make buttons full width */
+            }
+            .form-actions .action-button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto main-container p-6 rounded-lg shadow-xl">
+        <h1 class="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-6 title-pulse">Baby & Hospital Leaderboard</h1>
+
+        <form id="entry-form" class="mb-8 p-4 rounded-lg shadow-sm">
+            <h2 class="text-xl font-semibold text-gray-700 mb-4">Add/Edit Entry</h2>
+            <p id="form-instruction" class="text-sm text-gray-600 mb-3">Enter details below to add, or click a row in the table to edit.</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                    <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                    <input type="text" id="name" name="name" required
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white/80"
+                           placeholder="Enter name">
+                </div>
+                <div>
+                    <label for="time" class="block text-sm font-medium text-gray-700 mb-1">Time (MM:SS)</label>
+                    <input type="text" id="time" name="time" required pattern="\d{1,2}:\d{2}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white/80"
+                           placeholder="e.g., 01:35">
+                     <p id="time-error" class="text-red-600 text-xs mt-1 hidden font-medium">Invalid format. Use MM:SS.</p>
+                </div>
+                <div class="form-actions md:col-span-1">
+                    <button type="submit" id="submit-button" class="action-button submit-button">
+                        Add Entry
+                    </button>
+                    <button type="button" id="delete-button" class="action-button delete-button hidden">
+                        Delete Selected
+                    </button>
+                    <button type="button" id="cancel-button" class="action-button cancel-button hidden">
+                        Cancel Edit
+                    </button>
+                </div>
+            </div>
+            </form>
+
+        <div class="overflow-x-auto shadow-md rounded-lg relative">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead>
+                    <tr>
+                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Rank</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Name</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Time</th>
+                        </tr>
+                </thead>
+                <tbody id="leaderboard-body" class="divide-y divide-gray-200/50">
+                    </tbody>
+            </table>
+        </div>
+         <p id="no-entries-message" class="text-center text-gray-600 mt-4 hidden">No entries yet. Add one above!</p>
+    </div>
+
+    <script>
+        // --- DOM Elements ---
+        const form = document.getElementById('entry-form');
+        const nameInput = document.getElementById('name');
+        const timeInput = document.getElementById('time');
+        const timeError = document.getElementById('time-error');
+        const submitButton = document.getElementById('submit-button');
+        const deleteButton = document.getElementById('delete-button');
+        const cancelButton = document.getElementById('cancel-button');
+        const leaderboardBody = document.getElementById('leaderboard-body');
+        const noEntriesMessage = document.getElementById('no-entries-message');
+        const formInstruction = document.getElementById('form-instruction');
+
+        // --- State ---
+        let isEditing = false;
+        let selectedRow = null; // Reference to the currently selected TR element
+
+        // --- Utility Functions ---
+
+        /** Converts MM:SS to seconds */
+        function timeToSeconds(timeString) {
+            const timePattern = /^\s*(\d{1,2}):(\d{2})\s*$/;
+            const match = timeString.match(timePattern);
+            if (!match) return NaN;
+            const minutes = parseInt(match[1], 10);
+            const seconds = parseInt(match[2], 10);
+            if (isNaN(minutes) || isNaN(seconds) || seconds >= 60) return NaN;
+            return minutes * 60 + seconds;
+        }
+
+        /** Converts seconds to MM:SS */
+        function secondsToTime(totalSeconds) {
+            if (isNaN(totalSeconds) || totalSeconds < 0) return "00:00";
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            const paddedMinutes = String(minutes).padStart(2, '0');
+            const paddedSeconds = String(seconds).padStart(2, '0');
+            return `${paddedMinutes}:${paddedSeconds}`;
+        }
+
+        /** Validates time input format */
+        function validateTimeInput() {
+            const timeValue = timeInput.value;
+            const totalSeconds = timeToSeconds(timeValue);
+            if (isNaN(totalSeconds) && timeValue.trim() !== '') {
+                timeError.classList.remove('hidden');
+                timeInput.classList.add('border-red-500', 'focus:ring-red-500');
+                timeInput.classList.remove('focus:ring-indigo-500');
+                return false;
+            } else {
+                timeError.classList.add('hidden');
+                timeInput.classList.remove('border-red-500', 'focus:ring-red-500');
+                timeInput.classList.add('focus:ring-indigo-500');
+                return true;
+            }
+        }
+
+        /** Sorts leaderboard rows and updates ranks */
+        function sortLeaderboard() {
+            console.log("Sorting leaderboard..."); // Debug log
+            const rows = Array.from(leaderboardBody.querySelectorAll('tr'));
+            rows.sort((a, b) => {
+                const timeA = parseInt(a.querySelector('td[data-time-seconds]').dataset.timeSeconds, 10);
+                const timeB = parseInt(b.querySelector('td[data-time-seconds]').dataset.timeSeconds, 10);
+                return timeA - timeB;
+            });
+
+            // Store reference to the selected row's content if it exists
+            let selectedRowContent = null;
+            if (selectedRow) {
+                 // Using rank/name/time as a simple identifier. A unique ID would be better.
+                 selectedRowContent = {
+                     rank: selectedRow.cells[0].textContent,
+                     name: selectedRow.cells[1].textContent,
+                     time: selectedRow.cells[2].textContent
+                 };
+                 console.log("Selected row content before sort:", selectedRowContent);
+            }
+
+            leaderboardBody.innerHTML = ''; // Clear for re-append with animation
+            let newSelectedRow = null; // To store the reference to the row after re-append
+
+            rows.forEach((row, index) => {
+                row.querySelector('td:first-child').textContent = index + 1; // Update rank
+                row.classList.add('fade-in'); // Ensure animation class
+                leaderboardBody.appendChild(row);
+
+                // Try to find the previously selected row after re-appending
+                if (selectedRowContent &&
+                    row.cells[1].textContent === selectedRowContent.name &&
+                    row.cells[2].textContent === selectedRowContent.time) {
+                    newSelectedRow = row; // Found it!
+                    console.log("Found selected row after sort:", newSelectedRow);
+                }
+            });
+
+            // Re-apply selection if found
+            if (newSelectedRow) {
+                selectedRow = newSelectedRow; // Update the global reference
+                selectedRow.classList.add('selected-row'); // Re-apply highlight
+                console.log("Re-selected row:", selectedRow);
+            } else {
+                 // If the selected row was deleted or content changed drastically, reset selection
+                 if(isEditing) { // Only reset if we were in editing mode
+                    console.log("Selected row not found after sort/delete, resetting form.");
+                    resetFormAndButtons(); // This will set selectedRow to null
+                 }
+            }
+
+            toggleNoEntriesMessage();
+            console.log("Sorting finished."); // Debug log
+        }
+
+        /** Creates a new leaderboard row element (without action buttons) */
+        function createLeaderboardRow(rank, name, timeString, totalSeconds) {
+            const row = document.createElement('tr');
+            row.classList.add('fade-in');
+            row.setAttribute('role', 'button'); // Indicate clickable row
+            row.setAttribute('tabindex', '0'); // Make it focusable
+
+            // Rank Cell
+            const rankCell = document.createElement('td');
+            rankCell.className = 'px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900';
+            rankCell.textContent = rank;
+            rankCell.setAttribute('data-label', 'Rank');
+            row.appendChild(rankCell);
+
+            // Name Cell
+            const nameCell = document.createElement('td');
+            nameCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-700';
+            nameCell.textContent = name;
+            nameCell.setAttribute('data-label', 'Name');
+            row.appendChild(nameCell);
+
+            // Time Cell
+            const timeCell = document.createElement('td');
+            timeCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-700';
+            timeCell.textContent = timeString;
+            timeCell.setAttribute('data-time-seconds', totalSeconds);
+            timeCell.setAttribute('data-label', 'Time');
+            row.appendChild(timeCell);
+
+            // Add click listener directly to the row
+            row.addEventListener('click', () => handleRowClick(row));
+             // Add keydown listener for accessibility (Enter/Space to select)
+             row.addEventListener('keydown', (event) => {
+                 if (event.key === 'Enter' || event.key === ' ') {
+                     event.preventDefault(); // Prevent scrolling on space
+                     handleRowClick(row);
+                 }
+             });
+
+            return row;
+        }
+
+        /** Toggles the "No entries" message */
+        function toggleNoEntriesMessage() {
+            noEntriesMessage.classList.toggle('hidden', leaderboardBody.rows.length > 0);
+        }
+
+        /** Resets form and button states to Add mode */
+        function resetFormAndButtons() {
+            console.log("Resetting form and buttons..."); // Debug log
+            form.reset(); // Clear form fields
+            if (selectedRow) {
+                console.log("Deselecting row:", selectedRow); // Debug log
+                selectedRow.classList.remove('selected-row'); // Remove highlight
+            } else {
+                 console.log("No row was selected."); // Debug log
+            }
+            selectedRow = null; // Clear selection reference
+            isEditing = false; // Exit editing mode
+
+            // Reset submit button
+            submitButton.textContent = 'Add Entry';
+            submitButton.classList.remove('update-button');
+            submitButton.classList.add('submit-button');
+
+            // Hide Delete and Cancel buttons
+            deleteButton.classList.add('hidden');
+            cancelButton.classList.add('hidden');
+
+            // Reset instruction text
+             formInstruction.textContent = 'Enter details below to add, or click a row in the table to edit.';
+
+            // Clear any validation errors
+            timeError.classList.add('hidden');
+            timeInput.classList.remove('border-red-500', 'focus:ring-red-500');
+            timeInput.classList.add('focus:ring-indigo-500');
+            console.log("Form reset complete."); // Debug log
+        }
+
+        // --- Event Handlers ---
+
+        /** Handles clicking on a table row */
+        function handleRowClick(row) {
+             console.log("Row clicked:", row); // Debug log
+            // Deselect previous row if any
+            if (selectedRow && selectedRow !== row) {
+                 console.log("Deselecting previous row:", selectedRow); // Debug log
+                selectedRow.classList.remove('selected-row');
+            }
+
+             // If clicking the already selected row, treat as cancel
+             if (selectedRow === row) {
+                 console.log("Clicked already selected row. Cancelling edit."); // Debug log
+                 resetFormAndButtons();
+                 return;
+             }
+
+            // Select the new row
+            selectedRow = row;
+            selectedRow.classList.add('selected-row');
+             console.log("Selected new row:", selectedRow); // Debug log
+
+            // Populate form
+            const name = selectedRow.cells[1].textContent;
+            const timeString = selectedRow.cells[2].textContent;
+            nameInput.value = name;
+            timeInput.value = timeString;
+             console.log(`Populated form with Name: ${name}, Time: ${timeString}`); // Debug log
+
+            // Set editing state and update buttons
+            isEditing = true;
+            submitButton.textContent = 'Update Entry';
+            submitButton.classList.remove('submit-button');
+            submitButton.classList.add('update-button');
+
+            deleteButton.classList.remove('hidden');
+            cancelButton.classList.remove('hidden');
+             console.log("Set editing mode. Delete/Cancel buttons visible."); // Debug log
+
+            // Update instruction text
+            formInstruction.textContent = `Editing entry for "${name}". Click Cancel to deselect.`;
+
+            // Scroll form into view and focus
+            form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            nameInput.focus();
+            validateTimeInput(); // Validate loaded time immediately
+        }
+
+        /** Handles form submission (Add or Update) */
+        function handleSubmit(event) {
+            event.preventDefault();
+             console.log("Form submitted. Editing:", isEditing, "Selected Row:", selectedRow); // Debug log
+
+            if (!validateTimeInput()) {
+                timeInput.focus();
+                return;
+            }
+
+            const name = nameInput.value.trim();
+            const timeString = timeInput.value.trim();
+            const totalSeconds = timeToSeconds(timeString);
+
+            if (!name) {
+                alert('Please enter a name.');
+                nameInput.focus();
+                return;
+            }
+            if (isNaN(totalSeconds)) {
+                alert('Please enter a valid time in MM:SS format.');
+                timeInput.focus();
+                return;
+            }
+
+            if (isEditing && selectedRow) {
+                // --- Update existing row ---
+                 console.log(`Updating row: Name=${name}, Time=${timeString}`); // Debug log
+                selectedRow.cells[1].textContent = name;
+                selectedRow.cells[2].textContent = timeString;
+                selectedRow.cells[2].setAttribute('data-time-seconds', totalSeconds);
+                // Row remains selected after update
+            } else {
+                // --- Add new row ---
+                 console.log(`Adding new row: Name=${name}, Time=${timeString}`); // Debug log
+                const newRow = createLeaderboardRow('-', name, timeString, totalSeconds);
+                leaderboardBody.appendChild(newRow);
+                form.reset(); // Reset form only after adding
+            }
+
+            sortLeaderboard(); // Sort after adding or updating
+
+            if (!isEditing) {
+                // If we added a new row, ensure form is fully reset
+                 resetFormAndButtons(); // This should already be partially done by form.reset()
+            } else {
+                 // If editing, clear potential error states after successful update
+                 timeError.classList.add('hidden');
+                 timeInput.classList.remove('border-red-500', 'focus:ring-red-500');
+                 timeInput.classList.add('focus:ring-indigo-500');
+                 // Update instruction text after update
+                 formInstruction.textContent = `Updated entry for "${name}". Click Cancel to deselect.`;
+                 console.log("Update successful. Row remains selected."); // Debug log
+            }
+        }
+
+        /** Handles clicking the Delete button */
+        function handleDelete() {
+            // --- DEBUG LOGGING ADDED ---
+            console.log("handleDelete called.");
+            console.log("Current selectedRow:", selectedRow);
+
+            if (!selectedRow) {
+                console.warn("Delete clicked but no row selected."); // More informative log
+                alert("Please select a row to delete first.");
+                return;
+            }
+
+            const nameToDelete = selectedRow.cells[1].textContent;
+            console.log(`Attempting to delete row for "${nameToDelete}"`);
+
+            if (confirm(`Are you sure you want to delete the entry for "${nameToDelete}"?`)) {
+                console.log("User confirmed deletion.");
+                try {
+                    selectedRow.remove(); // Remove the row from the DOM
+                    console.log("Row removed from DOM successfully.");
+                    // Note: selectedRow variable still holds reference to the removed element until reset
+                } catch (error) {
+                     console.error("Error removing row from DOM:", error);
+                     alert("An error occurred while trying to remove the row.");
+                     // Don't proceed if removal failed
+                     return;
+                }
+                resetFormAndButtons(); // Reset form and selection state (sets selectedRow to null)
+                console.log("Form reset after deletion.");
+                sortLeaderboard(); // Re-sort and update ranks
+                console.log("Leaderboard sorted after deletion.");
+            } else {
+                 console.log("User cancelled deletion.");
+            }
+        }
+
+        /** Handles clicking the Cancel button */
+        function handleCancel() {
+             console.log("Cancel button clicked."); // Debug log
+            resetFormAndButtons();
+        }
+
+        // --- Event Listeners ---
+        form.addEventListener('submit', handleSubmit);
+        deleteButton.addEventListener('click', handleDelete);
+        cancelButton.addEventListener('click', handleCancel);
+        timeInput.addEventListener('input', validateTimeInput);
+
+        // --- Initial Setup ---
+        console.log("Initializing leaderboard script..."); // Debug log
+        resetFormAndButtons(); // Ensure initial state is correct
+        sortLeaderboard(); // Initial sort (if any predefined data existed)
+        toggleNoEntriesMessage();
+        console.log("Initialization complete."); // Debug log
+
+
+    </script>
+
+</body>
+</html>

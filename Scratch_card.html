@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baby & Hospital Scratch Card (Styled)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Define the color palette using CSS variables (from slot machine) */
+        :root {
+            --jagged-ice: #BCE3E3; /* Light blue-green (Body BG) */
+            --neptune: #6CB4BC; /* Teal (Borders, Buttons, Grid BG) */
+            --sinbad: #94CDD0; /* Light teal (Buttons) */
+            --jungle-mist: #A4CCCE; /* Greyish blue-green (Card BG) */
+            --outer-space: #2C3737; /* Dark text */
+            --gray-700: #374151; /* H1 color */
+            --gray-400: #9ca3af; /* Scratch overlay color */
+            --white: #ffffff;
+        }
+
+        /* Apply base styles from slot machine */
+        body {
+            font-family: 'Inter', sans-serif; /* Use Inter font */
+            background-color: var(--jagged-ice); /* Slot machine BG */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start; /* Align top */
+            min-height: 100vh;
+            padding: 1rem;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+
+        /* Header container like slot machine */
+        .header-container {
+            width: 100%;
+            max-width: 450px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        /* Back button style from slot machine */
+        .back-button {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--sinbad);
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: color 0.2s ease-in-out;
+            z-index: 10;
+        }
+        .back-button:hover {
+            color: var(--neptune);
+        }
+
+        /* H1 style from slot machine */
+        h1 {
+            color: var(--gray-700);
+            font-size: 30px !important;
+            font-weight: 600 !important;
+            text-align: center;
+            width: 100%;
+            margin: 0;
+            padding: 10px 0;
+            line-height: 1.2;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        /* Main game card styling (like slot machine) */
+        .game-card {
+             background-color: var(--jungle-mist); /* Greyish-blue background */
+             padding: 1.5rem;
+             border-radius: 0.75rem;
+             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+             max-width: 450px;
+             width: 100%;
+             text-align: center;
+             border-top: 8px solid var(--neptune); /* Top border */
+             margin-top: 1rem;
+        }
+        /* Instruction text color inside the card */
+        .game-card p {
+            color: var(--outer-space); /* Ensure contrast */
+        }
+
+
+        /* Scratch Grid Specific Styles */
+        .scratch-card-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 6px;
+            width: 90vw;
+            max-width: 350px; /* Increased size */
+            aspect-ratio: 1 / 1;
+            /* Removed border around the grid itself */
+            /* border: 2px solid var(--jungle-mist); */
+            border-radius: 8px;
+            padding: 6px;
+            background-color: var(--neptune); /* Grid background */
+            cursor: grab;
+            touch-action: none;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .scratch-card-grid:active {
+            cursor: grabbing;
+        }
+
+        .scratch-cell {
+            position: relative;
+            /* UNDO: Changed cell background back to white */
+            background-color: var(--white);
+            border-radius: 6px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: clamp(2rem, 9vw, 2.8rem); /* Slightly larger symbols */
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            /* UNDO: Removed initial white color for symbol */
+             color: var(--outer-space); /* Make symbols dark again */
+        }
+
+        .scratch-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--gray-400); /* Gray overlay */
+            border-radius: 6px;
+            transition: opacity 0.3s ease-out;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: clamp(0.7rem, 3vw, 0.9rem);
+            font-weight: bold;
+            text-align: center;
+            padding: 2px;
+            pointer-events: auto;
+        }
+        .scratch-overlay.scratched {
+            opacity: 0;
+            pointer-events: none;
+        }
+        /* UNDO: Removed the rule that restyled the symbol on reveal */
+        /* .scratch-overlay.scratched + .symbol { ... } */
+
+
+        /* Modal styles (adapted from slot machine) */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6);
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal.active {
+             display: flex;
+             opacity: 1;
+             visibility: visible;
+        }
+
+        .modal-content {
+            background-color: var(--white);
+            margin: auto;
+            padding: 2rem;
+            border: none;
+            border-radius: 1rem;
+            width: 90%;
+            max-width: 350px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        .modal.active .modal-content {
+             transform: scale(1);
+        }
+
+        .modal-message {
+             min-height: 2rem;
+             font-weight: bold;
+             text-align: center;
+             font-size: clamp(1rem, 5vw, 1.25rem);
+             padding: 0 1rem;
+             margin-bottom: 1.5rem;
+             color: var(--outer-space);
+        }
+        .modal-message.win {
+            color: var(--neptune);
+            animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        .modal-message.lose {
+             color: var(--outer-space);
+        }
+
+        /* Modal button styles (like slot machine play-again) */
+        .modal-button {
+            background: linear-gradient(145deg, var(--jungle-mist), var(--sinbad));
+            color: white;
+            font-weight: bold;
+            padding: 0.8rem 1.6rem;
+            border-radius: 0.75rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: clamp(0.9rem, 4vw, 1rem);
+            margin-top: 10px;
+            margin-left: 0.5rem;
+            margin-right: 0.5rem;
+        }
+        .modal-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+        .modal-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-buttons-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        /* Pulse animation */
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+        }
+
+        /* Responsive adjustments */
+         @media (max-width: 480px) {
+             h1 {
+                 font-size: 24px !important;
+             }
+             .game-card {
+                 padding: 1rem;
+             }
+             .scratch-card-grid {
+                 max-width: 300px; /* Adjust max width for smaller screens */
+                 gap: 5px;
+                 padding: 5px;
+             }
+             .scratch-cell {
+                 font-size: clamp(1.8rem, 8vw, 2.5rem); /* Adjust symbol size */
+             }
+             .modal-content {
+                 padding: 1.5rem;
+                 max-width: 300px;
+             }
+             .modal-button {
+                 padding: 0.7rem 1.4rem;
+                 font-size: 0.85rem;
+             }
+         }
+    </style>
+</head>
+<body>
+
+    <div class="header-container">
+        <button id="backButton" class="back-button" aria-label="Back to Home" title="Back to Home">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <h1>Scratch That Baby</h1>
+    </div>
+
+    <div class="game-card">
+        <p class="mb-4">Scratch 3 matching symbols to win!</p>
+        <div id="scratchCard" class="scratch-card-grid">
+            </div>
+    </div>
+
+    <div id="gameOverModal" class="modal">
+        <div class="modal-content">
+            <div id="modalMessage" class="modal-message"></div>
+            <div class="modal-buttons-container">
+                <button id="modalPlayAgainButton" class="modal-button">Play Again</button>
+                <button id="modalBackToHomeButton" class="modal-button">Back to Home</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const gridElement = document.getElementById('scratchCard');
+        const backButton = document.getElementById('backButton');
+        const gameOverModal = document.getElementById('gameOverModal');
+        const modalMessageElement = document.getElementById('modalMessage');
+        const modalPlayAgainButton = document.getElementById('modalPlayAgainButton');
+        const modalBackToHomeButton = document.getElementById('modalBackToHomeButton');
+
+        const gridSize = 3;
+        const symbols = ['👩‍⚕️', '👶', '👨‍⚕️', '🚑', '❤️', '🩹'];
+        const winCount = 3;
+
+        let board = [];
+        let revealed = [];
+        let isScratching = false;
+        let gameOver = false;
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function getRandomBoardSymbols(count) {
+            const boardSymbols = [];
+            const shuffledSymbols = shuffleArray([...symbols]);
+
+            for (let i = 0; i < count; i++) {
+                boardSymbols.push(shuffledSymbols[i % shuffledSymbols.length]);
+            }
+
+            return shuffleArray(boardSymbols);
+        }
+
+        function createGrid() {
+            gridElement.innerHTML = '';
+            board = getRandomBoardSymbols(gridSize * gridSize);
+            revealed = Array(gridSize * gridSize).fill(false);
+            gameOver = false;
+            isScratching = false;
+
+            gameOverModal.classList.remove('active');
+            modalMessageElement.textContent = '';
+            modalMessageElement.className = 'modal-message';
+
+            for (let i = 0; i < gridSize * gridSize; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('scratch-cell');
+                cell.dataset.index = i;
+
+                const symbolSpan = document.createElement('span');
+                symbolSpan.textContent = board[i] || '?';
+                symbolSpan.classList.add('symbol');
+                cell.appendChild(symbolSpan);
+
+                const overlay = document.createElement('div');
+                overlay.classList.add('scratch-overlay');
+                overlay.textContent = 'SCRATCH';
+                cell.appendChild(overlay);
+
+                const revealCell = (event) => {
+                     if (gameOver || revealed[i]) return;
+
+                     overlay.classList.add('scratched');
+                     revealed[i] = true;
+                     checkWinCondition();
+                     event.preventDefault();
+                };
+
+                overlay.addEventListener('pointerdown', (e) => {
+                    if (gameOver || revealed[i]) return;
+                    isScratching = true;
+                    revealCell(e);
+                    try { overlay.setPointerCapture(e.pointerId); } catch(err) { console.warn("Pointer capture not supported or failed."); }
+                });
+
+                overlay.addEventListener('pointermove', (e) => {
+                    if (!isScratching) return;
+
+                    const rect = overlay.getBoundingClientRect();
+                    const isOver = e.clientX >= rect.left && e.clientX <= rect.right &&
+                                   e.clientY >= rect.top && e.clientY <= rect.bottom;
+
+                    if (isOver && !revealed[i]) {
+                        revealCell(e);
+                    }
+                     e.preventDefault();
+                });
+
+                const stopScratching = (e) => {
+                    if (isScratching) {
+                        isScratching = false;
+                        try {
+                            if (overlay.hasPointerCapture(e.pointerId)) {
+                                overlay.releasePointerCapture(e.pointerId);
+                            }
+                        } catch(err) { console.warn("Pointer release not supported or failed."); }
+                        checkWinCondition();
+                    }
+                };
+
+                overlay.addEventListener('pointerup', stopScratching);
+                overlay.addEventListener('pointercancel', stopScratching);
+                overlay.addEventListener('pointerleave', stopScratching);
+
+
+                gridElement.appendChild(cell);
+            }
+        }
+
+
+        function checkWinCondition() {
+            if (gameOver) return;
+
+            const revealedSymbolsCount = {};
+            let revealedCount = 0;
+
+            for (let i = 0; i < revealed.length; i++) {
+                if (revealed[i]) {
+                    revealedCount++;
+                    const symbol = board[i];
+                    revealedSymbolsCount[symbol] = (revealedSymbolsCount[symbol] || 0) + 1;
+                }
+            }
+
+            let winFound = false;
+            let winSymbol = null;
+
+            for (const symbol in revealedSymbolsCount) {
+                if (revealedSymbolsCount[symbol] >= winCount) {
+                    winFound = true;
+                    winSymbol = symbol;
+                    break;
+                }
+            }
+
+            if (winFound) {
+                let message = '';
+                let messageClass = 'modal-message win';
+
+                if (winSymbol === '👩‍⚕️') message = `🎉 Regular Win! You matched ${winCount} 👩‍⚕️! 🎉`;
+                else if (winSymbol === '👶') message = `✨ Special Win! You matched ${winCount} 👶! ✨`;
+                else if (winSymbol === '👨‍⚕️') message = `🎁 Bonus! You matched ${winCount} 👨‍⚕️! 🎁`;
+                else message = `🏆 Winner! You matched ${winCount} ${winSymbol}! 🏆`;
+
+                modalMessageElement.textContent = message;
+                modalMessageElement.className = messageClass;
+                gameOver = true;
+                revealAll();
+                gameOverModal.classList.add('active');
+
+            } else if (revealedCount === gridSize * gridSize) {
+                modalMessageElement.textContent = '🤔 No win this time. Try Again!';
+                modalMessageElement.className = 'modal-message lose';
+                gameOver = true;
+                gameOverModal.classList.add('active');
+            }
+        }
+
+        function revealAll() {
+            const overlays = gridElement.querySelectorAll('.scratch-overlay');
+            overlays.forEach((overlay, index) => {
+                if (!overlay.classList.contains('scratched')) {
+                    overlay.classList.add('scratched');
+                    revealed[index] = true;
+                }
+            });
+        }
+
+        function resetGame() {
+            createGrid();
+        }
+
+        function goBackToHome() {
+            window.location.href = 'index.html';
+        }
+
+        modalPlayAgainButton.addEventListener('click', resetGame);
+        modalBackToHomeButton.addEventListener('click', goBackToHome);
+        backButton.addEventListener('click', goBackToHome);
+
+        window.onload = createGrid;
+
+    </script>
+</body>
+</html>
