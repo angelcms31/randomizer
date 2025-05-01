@@ -23,7 +23,10 @@
         /* Apply base styles from slot machine */
         body {
             font-family: 'Inter', sans-serif; /* Use Inter font */
-            background-color: var(--jagged-ice); /* Slot machine BG */
+            background-image: url('bg.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;            
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -79,7 +82,7 @@
 
         /* Main game card styling (like slot machine) */
         .game-card {
-             background-color: var(--jungle-mist); /* Greyish-blue background */
+             background-color: var(--white); /* Greyish-blue background */
              padding: 1.5rem;
              border-radius: 0.75rem;
              box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
@@ -161,11 +164,7 @@
             opacity: 0;
             pointer-events: none;
         }
-        /* UNDO: Removed the rule that restyled the symbol on reveal */
-        /* .scratch-overlay.scratched + .symbol { ... } */
-
-
-        /* Modal styles (adapted from slot machine) */
+        
         .modal {
             display: none;
             position: fixed;
